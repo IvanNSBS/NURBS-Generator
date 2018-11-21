@@ -24,12 +24,12 @@ void render_control_points(int min, int max, vec3 *cp, vec2i *rcp, camera &cam, 
     return;
 }
 
-void render_bezier_curve(int numSegments, int n, vec3 *cp, camera &cam, std::ofstream &ofs){
-    vec3 *rp = new vec3[numSegments];
-    vec2i *rpc = new vec2i[numSegments];
-    for (int i = 0; i < numSegments; ++i) { 
-        float t0 = i / (float)numSegments; 
-        float t1 = (i+1) / (float)numSegments; 
+void render_bezier_curve(int nSegments, int n, vec3 *cp, camera &cam, std::ofstream &ofs){
+    vec3 *rp = new vec3[nSegments];
+    vec2i *rpc = new vec2i[nSegments];
+    for (int i = 0; i < nSegments; ++i) { 
+        float t0 = i / (float)nSegments; 
+        float t1 = (i+1) / (float)nSegments; 
         getPoint(0, n, t0, cp, rp[i]);
         getPoint(0, n, t1, cp, rp[i+1]);
         bool visible = cam.compute_pixel_coordinates(rp[i], rpc[i]);
@@ -48,37 +48,42 @@ void render_surface_cp(int &n, vec3 *cp, camera &cam, std::ofstream &ofs){
         render_control_points(i, max, cp, rcp, cam, ofs);
     }
 
-    int lig = (n*n) - n;
+    int lig = (n*(n-1));
     for(int i = 0; i < lig; i++)
         ofs << "    <line x1=\"" << rcp[i].x() << "\" y1=\"" << rcp[i].y() << "\" x2=\"" << rcp[i+n].x() << "\" y2=\"" << rcp[i+n].y() << "\" style=\"stroke:rgb(255,0,0);stroke-width:1.2\" />\n";
 }
 
-void render_surface(int numSegments, int n, vec3 *cp, camera &cam, std::ofstream &ofs){
-    int size = numSegments*(n+1);
+void render_bezier_surface(int nSegments, int n, vec3 *cp, camera &cam, std::ofstream &ofs){
+    int size = (nSegments+1)*(n+1);
 
     vec2i *rpc = new vec2i[size];
 
-        vec3 *rp = new vec3[numSegments];
+    int aux = 0;
     for(int j = 0; j <= n; j++)
     {
-        for (int i = 0; i < numSegments; ++i) { 
-            float t0 = i / (float)numSegments; 
-            float t1 = (i+1) / (float)numSegments; 
-            int index = i*(j+1);
+        vec3 *rp = new vec3[nSegments+1];
+        for (int i = 0; i < nSegments; ++i) { 
+            float t0 = i / (float)nSegments; 
+            float t1 = (i+1) / (float)nSegments; 
+            int index = i + (j*(nSegments+1));
             getPoint((n+1)*j, n, t0, cp, rp[i]);
             getPoint((n+1)*j, n, t1, cp, rp[i+1]);
             bool visible = cam.compute_pixel_coordinates(rp[i], rpc[index]);
             bool visible1 = cam.compute_pixel_coordinates(rp[i+1], rpc[index+1]);
+            aux++;
             ofs << "    <line x1=\"" << rpc[index].x() << "\" y1=\"" << rpc[index].y() << "\" x2=\"" << rpc[index+1].x() << "\" y2=\"" << rpc[index+1].y() << "\" style=\"stroke:rgb(0,0,0);stroke-width:1.2\" />\n"; 
+            //ofs << "    <circle cx=\"" << rpc[index].x() << "\" cy=\"" << rpc[index].y() << "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
+            //ofs << "    <circle cx=\"" << rpc[index+1].x() << "\" cy=\"" << rpc[index+1].y() << "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
         }
     }
 
-    int lig = (numSegments*numSegments) - numSegments;
-    int i = 0;
-    int o = 1;
-    return;
-    //for(int i = 0; i < lig; i++)
-    //    ofs << "    <line x1=\"" << rpc[i].x() << "\" y1=\"" << rpc[i].y() << "\" x2=\"" << rpc[i+o].x() << "\" y2=\"" << rpc[i+o].y() << "\" style=\"stroke:rgb(0,0,0);stroke-width:1.2\" />\n";
+    int o = nSegments+1;
+    for(int i = 0; i < (nSegments+1)*n; i++)
+    {
+        ofs << "    <line x1=\"" << rpc[i].x() << "\" y1=\"" << rpc[i].y() << "\" x2=\"" << rpc[i+o].x() << "\" y2=\"" << rpc[i+o].y() << "\" style=\"stroke:rgb(0,0,0);stroke-width:1.2\" />\n";
+        ofs << "    <circle cx=\"" << rpc[i].x() << "\" cy=\"" << rpc[i].y() << "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
+        ofs << "    <circle cx=\"" << rpc[i+o].x() << "\" cy=\"" << rpc[i+o].y() << "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
+    }
 }
 
 int main(){
@@ -93,13 +98,14 @@ int main(){
     ofs << "    <rect width=\"" << cam.imgWidth << "\" height=\"" << cam.imgHeight << "\" stroke=\"black\" stroke-width=\"0\" fill=\"rgb(120,120,120)\"/>\n" ; 
 
     int pnum = 4;
+    int pnum2 = pnum*pnum;
     int n = pnum-1;
     int numSegments = 10;
     vec3 *cp = new vec3[pnum];
     vec3 *cp2 = new vec3[pnum];
     vec3 *cp3 = new vec3[pnum];
     vec3 *cp4 = new vec3[pnum];
-    vec3 *scp2 = new vec3[pnum*pnum];
+    vec3 *scp2 = new vec3[pnum2];
 
     cp[0] = scp2[0] = vec3(20.0, 0, -10);
     cp[1] = scp2[1] = vec3(40.0, 13, -15);
@@ -121,30 +127,8 @@ int main(){
     cp4[2] = scp2[14] = vec3(60.0, 1.5, 17);
     cp4[3] = scp2[15] = vec3(75.0, 0, 23);
     
-    vec2i *rpc = new vec2i[numSegments];
     render_surface_cp(pnum, scp2, cam, ofs);
-    render_surface(numSegments, n, scp2, cam, ofs);
-
-
-    /*render_bezier_curve( numSegments, n, cp, cam, ofs);
-    render_bezier_curve( numSegments, n, cp2, cam, ofs);
-    render_bezier_curve( numSegments, n, cp3, cam, ofs);
-    render_bezier_curve( numSegments, n, cp4, cam, ofs);*/
-
-    /*vec3 *rp = new vec3[numSegments];
-    //create curve points
-    for (int i = 0; i <= numSegments; ++i) { 
-        float t = i / (float)numSegments; 
-        getPoint(n, t, cp, rp[i]);
-        bool visible = cam.compute_pixel_coordinates(rp[i], rpc[i]);
-    }
-
-    for(int i = 0; i < numSegments; ++i){
-        ofs << "    <line x1=\"" << rpc[i].x() << "\" y1=\"" << rpc[i].y() << "\" x2=\"" << rpc[i+1].x() << "\" y2=\"" << rpc[i+1].y() << "\" style=\"stroke:rgb(0,0,0);stroke-width:1.2\" />\n"; 
-    }*/
-    //render_surface_cp(scp, 4, n, cam, ofs);
-
-    //render control points
+    render_bezier_surface(numSegments, n, scp2, cam, ofs);
 
     ofs << "</svg>";
     return 0;
