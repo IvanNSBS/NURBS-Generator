@@ -26,8 +26,7 @@ public:
            fov(f), near(n), imgWidth(iwidth), imgHeight(iheight)
            {
                 float aspectratio = iwidth/iheight;
-                float angle = std::tan(f*0.5) * n;
-                std::cout << "fov viewsize: " << angle << std::endl;
+                float angle = std::tan((f*0.5)*3.14/180);
                 top = angle; 
                 right = angle * aspectratio;    
                 bottom = -top; 

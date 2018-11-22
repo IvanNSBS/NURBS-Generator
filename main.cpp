@@ -72,8 +72,6 @@ void render_bezier_surface(int nSegments, int n, vec3 *cp, camera &cam, std::ofs
             bool visible1 = cam.compute_pixel_coordinates(rp[i+1], rpc[index+1]);
             aux++;
             ofs << "    <line x1=\"" << rpc[index].x() << "\" y1=\"" << rpc[index].y() << "\" x2=\"" << rpc[index+1].x() << "\" y2=\"" << rpc[index+1].y() << "\" style=\"stroke:rgb(0,0,0);stroke-width:1.2\" />\n"; 
-            //ofs << "    <circle cx=\"" << rpc[index].x() << "\" cy=\"" << rpc[index].y() << "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
-            //ofs << "    <circle cx=\"" << rpc[index+1].x() << "\" cy=\"" << rpc[index+1].y() << "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
         }
     }
 
@@ -90,17 +88,19 @@ int main(){
 
     vec3 from(35,45,20);
     vec3 at(40,0,-1);
-    camera cam(from, at, vec3(0,1,0), 20.0, 1.0, 800, 400);
+    float FoV = 60;
+    float near = 1;
+    camera cam(from, at, vec3(0,1,0), FoV, near, 800, 400);
 
     std::ofstream ofs; 
-    ofs.open("./pinhole.svg"); 
+    ofs.open("./bezierSurface.svg"); 
     ofs << "<svg version=\"1.1\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" width=\"" << cam.imgWidth << "\" height=\"" << cam.imgHeight << "\">" << std::endl;
     ofs << "    <rect width=\"" << cam.imgWidth << "\" height=\"" << cam.imgHeight << "\" stroke=\"black\" stroke-width=\"0\" fill=\"rgb(120,120,120)\"/>\n" ; 
 
     int pnum = 4;
     int pnum2 = pnum*pnum;
     int n = pnum-1;
-    int numSegments = 10;
+    int numSegments = 30;
     vec3 *cp = new vec3[pnum];
     vec3 *cp2 = new vec3[pnum];
     vec3 *cp3 = new vec3[pnum];
@@ -126,9 +126,28 @@ int main(){
     cp4[1] = scp2[13] = vec3(40.0, 3, 15);
     cp4[2] = scp2[14] = vec3(60.0, 1.5, 17);
     cp4[3] = scp2[15] = vec3(75.0, 0, 23);
+
+    for(int i = 0; i < pnum2; ++i)
+    {
+        matrix44 tr(1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    -20,0,10,1);
+        matrix44 itr = tr.inverse();
+        float sen30 = 0.5;
+        float cos30 = 0.86602540378;
+        matrix44 rot(cos30, 0, -sen30, 0, 
+                       0,   1,    0,   0,
+                     sen30, 0, cos30, 0, 
+                       0,   0,    0,   1);
+        matrix44 result = (tr*rot)*itr;
+        vec3 aux;
+        result.multVecMatrix(scp2[i], aux);
+        //scp2[i] = aux;
+    }
     
-    render_surface_cp(pnum, scp2, cam, ofs);
     render_bezier_surface(numSegments, n, scp2, cam, ofs);
+    render_surface_cp(pnum, scp2, cam, ofs);
 
     ofs << "</svg>";
     return 0;
