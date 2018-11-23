@@ -9,6 +9,8 @@ int factorial(int n){
 
 void getPoint(int offset, int n, float &t, vec3 *cp, vec3 &p){
     p = vec3(0.0, 0.0, 0.0);
+    vec3 u = vec3(0.0, 0.0, 0.0);
+    vec3 d = vec3(0.0, 0.0, 0.0);
     for(int i = 0; i <= n; ++i){
         p += ( factorial(n)/ (factorial(i)*factorial(n-i)) ) * std::pow(t,i)*std::pow((1-t),(n-i))*cp[i+offset];
     }
