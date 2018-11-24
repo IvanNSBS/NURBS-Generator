@@ -4,23 +4,42 @@
 #include <fstream>
 
 float normalized(int i, int k, float t, float *knots){
+    int index = i-1;
     if(k == 1){
-        if(knots[i] <= t && t < knots[i+1])
+        if( t >= knots[index] && t < knots[index + 1])
             return 1.0;
         else
             return 0.0;
     }
     else{
-        float t1 = (t - knots[i])/(knots[i+k-1]-knots[i]);
-        float t2 = (knots[i+k]-t)/(knots[i+k]-knots[i+1]);
-        return t1*normalized(i, k-1, t, knots) + t2*normalized(i+1, k-1, t, knots);
+        float numeratorA = (t - knots[index]);
+        float denominatorA = (knots[index+k-1]-knots[index]);
+        float numeratorB = (knots[index+k]-t);
+        float denominatorB = (knots[index+k]-knots[index+1]);
+
+        float rA = 0;
+        float rB = 0;
+
+        if( denominatorA != 0 )
+            rA = (numeratorA/denominatorA) * normalized(i, k-1, t, knots) ;
+        
+        if( denominatorB != 0)
+            rB = (numeratorB/denominatorB) * normalized(i+1, k-1, t, knots);
+
+        return rA + rB;
     }
 }
 
 vec3 boor(int n, int k, float t, float *knots, vec3 *cpts){
     vec3 result(0.0, 0.0, 0.0);
-    for(int i = 0; i <= n; i++){
-        result += (normalized(i, k, t, knots)*cpts[i]);
+    for(int i = 1; i <= n+1; i++){
+        float w = normalized(i, k, t, knots);
+        result += w * cpts[i-1];
+        if(w!= 0){
+            std::cout << "w : " << w << std::endl;
+            std::cout << "cpt : " << cpts[i-1] << std::endl;
+            std::cout << "r : " << result << std::endl;
+        }
     }
     return result;
 }
@@ -28,7 +47,7 @@ vec3 boor(int n, int k, float t, float *knots, vec3 *cpts){
 
 vec3 deBoor(int k, int degree, int i, float x, float* knots, vec3 *ctrlPoints)
 {   
-    if( k == 0)
+    if( k == 0 )
         return ctrlPoints[i];
     else
     {
@@ -64,43 +83,52 @@ int main()
     
 
     //number of control points -1
-    int n = 6;
-    vec3 *cpts = new vec3[n+1];
+    int n = 3;
+    int size = n+1;
+    vec3 *cpts = new vec3[size];
     //k = order of curve
-    int k = 4;
+    int k = 3;
     //m = knot vector size -1
     int m = n + k + 1;
     
-    cpts[0] = vec3(20, 270, 10);
+    /*cpts[0] = vec3(20, 220, 10);
+    cpts[1] = vec3(20, 60, 10);
+    cpts[2] = vec3(180, 60, 10);
+    cpts[3] = vec3(180, 210, 10);
+    cpts[4] = vec3(40, 210, 10);
+    cpts[5] = vec3(40, 75, 10);
+    cpts[6] = vec3(165, 75, 10);*/
+
+    /*cpts[0] = vec3(20, 270, 10);
     cpts[1] = vec3(60, 40, 10);
     cpts[2] = vec3(120, 130, 10);
     cpts[3] = vec3(185, 180, 10);
     cpts[4] = vec3(260, 90, 10);
     cpts[5] = vec3(345, 140, 10);
-    cpts[6] = vec3(385, 220, 10);
+    cpts[6] = vec3(385, 220, 10);*/
+
+    cpts[0] = vec3(20, 270, 10);
+    cpts[1] = vec3(140, 90, 10);
+    cpts[2] = vec3(345, 140, 10);
+    cpts[3] = vec3(385, 220, 10);
 
     for(int i = 0; i < n+1; i++){
         ofs << "    <circle cx=\"" << cpts[i].x() << "\" cy=\"" << cpts[i].y() <<
         "\" r=\"2.5\" stroke=\"black\" stroke-width=\"1\" fill=\"blue\" />" << std::endl;
     }
 
-    float kt[11] = {0,1,2,3,4,5,6,7,8,9,10};
+    float kt [6] = {1,2,2,3,4,4};
+    //float kt[11] = {0,1,2,3,4,5,6,7,8,9,10};
     //float kt[11] = {0, 0, 0, 0, 0.25, 0.5, 0.75, 1, 1, 1, 1};
 
-    int numSegments = 30;
+    int numSegments = 20;
     float t = 0;
-    for (int i = 0; i < n; ++i){
-
-        float t = (float)i+0.1;
-        //vec3 pt = vec3(0,0,0);
-        int j = which_interval(t, kt, m);
-        //pt = deBoor(k, k, j, t, kt, cpts);
-        vec3 pt = boor(n, k, t, kt, cpts);
-        std::cout << pt << std::endl;
-        ofs << "    <circle cx=\"" << pt.x() << "\" cy=\"" << pt.y() <<
-        "\" r=\"0.8\" stroke=\"black\" stroke-width=\"0.3\" fill=\"red\" />" << std::endl;
-
+    for (int i = 0; i <= numSegments; ++i){
+        float x = (i/(float)numSegments)*(size - (k-1)) + (k-1);
+        vec3 pt = boor(n, k, x, kt, cpts);
+        ofs << "    <circle cx=\"" << pt.x() << "\" cy=\"" << pt.y() << "\" r=\"0.8\" stroke=\"black\" stroke-width=\"0.3\" fill=\"red\" />" << std::endl;
     }
+
 
     ofs << "</svg>";
     return 0;

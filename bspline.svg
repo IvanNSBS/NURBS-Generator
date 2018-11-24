@@ -1,16 +1,30 @@
 <svg version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="400" height="300">
     <rect width="400" height="300" stroke="black" stroke-width="0" fill="rgb(120,120,120)"/>
     <circle cx="20" cy="270" r="2.5" stroke="black" stroke-width="1" fill="blue" />
-    <circle cx="60" cy="40" r="2.5" stroke="black" stroke-width="1" fill="blue" />
-    <circle cx="120" cy="130" r="2.5" stroke="black" stroke-width="1" fill="blue" />
-    <circle cx="185" cy="180" r="2.5" stroke="black" stroke-width="1" fill="blue" />
-    <circle cx="260" cy="90" r="2.5" stroke="black" stroke-width="1" fill="blue" />
+    <circle cx="140" cy="90" r="2.5" stroke="black" stroke-width="1" fill="blue" />
     <circle cx="345" cy="140" r="2.5" stroke="black" stroke-width="1" fill="blue" />
     <circle cx="385" cy="220" r="2.5" stroke="black" stroke-width="1" fill="blue" />
-    <circle cx="0.00333333" cy="0.045" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
-    <circle cx="4.43333" cy="59.7217" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
-    <circle cx="26.4333" cy="186.303" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
-    <circle cx="68.4308" cy="87.8733" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
-    <circle cx="127.109" cy="130.117" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
-    <circle cx="193.717" cy="154.013" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="12.8" cy="172.8" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="16.2" cy="218.7" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="20" cy="270" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="43.825" cy="236.05" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="67.3" cy="206.2" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="90.425" cy="180.45" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="113.2" cy="158.8" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="135.625" cy="141.25" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="157.7" cy="127.8" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="179.425" cy="118.45" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="200.8" cy="113.2" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="221.825" cy="112.05" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="242.5" cy="115" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="262.375" cy="120.55" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="281" cy="127.2" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="298.375" cy="134.95" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="314.5" cy="143.8" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="329.375" cy="153.75" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="343" cy="164.8" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="355.375" cy="176.95" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="366.5" cy="190.2" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="376.375" cy="204.55" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
+    <circle cx="385" cy="220" r="0.8" stroke="black" stroke-width="0.3" fill="red" />
 </svg>
