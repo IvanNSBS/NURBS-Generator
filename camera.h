@@ -59,7 +59,7 @@ public:
         worldToCamera = camToWorld.inverse();
     }
 
-    bool compute_pixel_coordinates(const vec3 &pWorld, vec2i &pRaster) 
+    bool compute_pixel_coordinates(const vec3 &pWorld, vec2f &pRaster) 
     { 
         vec3 pCamera; 
         worldToCamera.multVecMatrix(pWorld, pCamera); 
@@ -70,12 +70,12 @@ public:
         vec2f pNDC; 
         pNDC[0] = (pScreen.x() + right) / (2 * right); 
         pNDC[1] = (pScreen.y() + top) / (2 * top); 
-        pRaster[0] = (int)(pNDC.x() * imgWidth); 
-        pRaster[1] = (int)((1 - pNDC.y()) * imgHeight); 
+        pRaster[0] = (pNDC.x() * imgWidth); 
+        pRaster[1] = ((1 - pNDC.y()) * imgHeight); 
     
         bool visible = true; 
-        if (pScreen.x() < left || pScreen.x() > right || pScreen.y() < bottom || pScreen.y() > top) 
-            visible = false; 
+        /*if (pScreen.x() < left || pScreen.x() > right || pScreen.y() < bottom || pScreen.y() > top) 
+            visible = false;*/ 
     
         return visible; 
     }

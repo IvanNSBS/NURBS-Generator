@@ -36,7 +36,7 @@ void render_bezier_curve(int nSegments, int n, vec3 *cp, camera &cam, std::ofstr
         getPoint(0, n, t1, cp, rp[i+1]);
         bool visible = cam.compute_pixel_coordinates(rp[i], rpc[i]);
         bool visible1 = cam.compute_pixel_coordinates(rp[i+1], rpc[i+1]);
-        ofs << "    <line x1=\"" << rpc[i].x() << "\" y1=\"" << rpc[i].y() << "\" x2=\"" << rpc[i+1].x() << "\" y2=\"" << rpc[i+1].y() << "\" style=\"stroke:rgb(0,0,0);stroke-width:1.2\" />\n"; 
+        ofs << "    <line x1=\"" << rpc[i].x() << "\" y1=\"" << rpc[i].y() << "\" x2=\"" << rpc[i+1].x() << "\" y2=\"" << rpc[i+1].y() << "\" style=\"stroke:rgb(255,0,0);stroke-width:1.2\" />\n"; 
     }
     return;
 }
@@ -145,7 +145,7 @@ int main(){
         matrix44 result = (tr*rot)*itr;
         vec3 aux;
         result.multVecMatrix(scp2[i], aux);
-        //scp2[i] = aux;
+        scp2[i] = aux;
     }
     
     render_bezier_surface(numSegments, n, scp2, cam, ofs);
