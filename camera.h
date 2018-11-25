@@ -3,7 +3,6 @@
 
 #include "vec3.h"
 #include "vec2f.h"
-#include "vec2i.h"
 #include "matrix44.h"
 
 #define M_PI 3.141592653589793
