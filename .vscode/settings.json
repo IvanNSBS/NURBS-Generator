@@ -40,7 +40,9 @@
         "xtr1common": "cpp",
         "xutility": "cpp",
         "vector": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "sstream": "cpp",
+        "string": "cpp"
     },
     "python.pythonPath": "C:\\Python27\\python.exe"
 }

@@ -1,0 +1,48 @@
+#camera
+width 400
+height 300
+from -28 40 10
+at -10 27 -1
+up 0 1 0
+FoV 30
+near 1.2
+
+
+#numero de pontos de controle - 1
+cpsize 3
+
+#ordem do NURBS(ordem precisa vir depois de cpsize)
+order 3
+
+#pesos
+peso 0.2 0.2 0.2 0.2
+peso 2 0.55 0.55 2
+peso 2 0.55 0.55 2
+peso 0.2 0.2 0.2 0.2
+
+#nós
+no 2 2.1 2.3 2.8 3.4 3.5 3.8
+no 2 2.1 2.3 2.8 3.4 3.5 3.8
+no 2 2.1 2.3 2.8 3.4 3.5 3.8
+no 2 2.1 2.3 2.8 3.4 3.5 3.8
+
+#pontos de controle
+cp 2 11 -7
+cp 5 11 -7
+cp 8 11 -7
+cp 11 11 -7
+
+cp 2 11 -10
+cp 5 15 -10
+cp 8 15 -10
+cp 11 11 -10
+
+cp 2 11 -13
+cp 5 15 -13
+cp 8 15 -13
+cp 11 11 -13
+
+cp 2 11 -16
+cp 5 11 -16
+cp 8 11 -16
+cp 11 11 -16

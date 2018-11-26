@@ -1,62 +1,183 @@
 #include "camera.h"
 #include "nurbs.h"
 #include <fstream>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+bool readFile(NURBS &nurbs, const std::string &filename){
+    
+    camera *cam;
+    int width, height;
+    float fov, near;
+    vec3 from;
+    vec3 at;
+    vec3 up;
+
+    int cpsize;
+    int order;
+
+    float *weights;
+    int auxWeight = 1;
+
+    float *knots;
+    int auxKnot = 1;
+
+    vec3 *cpPoints;
+    int auxN = 0;
+
+    std::ifstream file;
+    file.open(filename);
+    if(!file){
+        std::cout << "Arquivo nao encontrado\n";
+        return false;
+    }
+
+    string str;
+    getline(file, str);
+
+    while(file)
+    {
+        if(str.length() > 0 && str.at(0) != '#')
+        {
+            std::stringstream stream(str);
+            while(stream)
+            {
+                string next;
+                stream >> next;
+                if(next == "width"){
+                    stream >> width;
+                }
+                else if(next == "height"){
+                    stream >> height;
+                }
+                else if(next == "from"){
+                    float px, py, pz;
+                    stream >> px >> py >> pz;
+                    from = vec3(px,py,pz);
+                }
+                else if(next == "at"){
+                    float px, py, pz;
+                    stream >> px >> py >> pz;
+                    at = vec3(px,py,pz);
+                }
+                else if(next == "up"){
+                    float px, py, pz;
+                    stream >> px >> py >> pz;
+                    up = vec3(px,py,pz);
+                }
+                else if(next == "FoV"){
+                    stream >> fov;
+                }
+                else if(next == "near"){
+                    stream >> near;
+                }
+                else if(next == "cpsize"){
+                    stream >> cpsize;
+                }
+                else if(next == "order"){
+                    stream >> order;
+                    knots = new float[(cpsize+1+order)*(cpsize+1)];
+                    weights = new float[(cpsize+1)*(cpsize+1)];
+                    cpPoints = new vec3[(cpsize+1)*(cpsize+1)];
+                }
+                if(next == "peso"){
+                    for(int i = (cpsize+1)*(auxWeight-1); i < (cpsize+1)*(auxWeight); i++){
+                        stream >> weights[i];
+                    }
+                    auxWeight++;
+                }
+                if(next == "no"){
+                    for(int i = (cpsize+1+order)*(auxKnot-1); i < (cpsize+1+order)*(auxKnot); i++){
+                        stream >> knots[i];
+                    }
+                    auxKnot++;
+                }
+                if(next == "cp"){
+                    float x, y, z;
+                    stream >> x >> y >> z;
+                    cpPoints[auxN] = vec3(x,y,z);
+                    auxN++;
+                }
+            }
+        }
+        getline(file, str);
+    }
+
+    cam = new camera(from, at, up, fov, near, width, height);
+    nurbs = NURBS(cpsize, order, cpPoints, weights, knots);
+    nurbs.cam = cam;
+    std::cout << "Arquivo lido com sucesso.\n";
+    return true;
+}
+
+void renderScene(NURBS &n, bool drawCPTs, bool drawCurve, bool drawBBox){
+
+    std::ofstream ofs; 
+    ofs.open("./bspline3.svg"); 
+    ofs << "<svg version=\"1.1\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" width=\"" << n.cam->imgWidth << "\" height=\"" << n.cam->imgHeight << "\">" << std::endl;
+    
+    ofs << "    <rect width=\"" << n.cam->imgWidth << "\" height=\"" << n.cam->imgHeight << "\" stroke=\"black\" stroke-width=\"0\" fill=\"rgb(150,150,150)\"/>\n" ; 
+    if(drawCurve)
+        n.render_curve(ofs, 20);
+    
+    if(drawCPTs)
+        n.render_control_points(ofs);
+
+    if(drawBBox)
+        n.render_bounding_box(ofs);
+
+    ofs << "</svg>";
+}
 
 int main()
 {
-    //vec3 from(10,45,20);
-    //vec3 at(15,0,-1);
-    vec3 from(-28, 40, 10);
-    vec3 at(-10, 27, -1);
-    float FoV = 30;
-    float near = 1.2;
-    camera *cam = new camera(from, at, vec3(0,1,0), FoV, near, 400, 300);
-    std::ofstream ofs; 
-    ofs.open("./bspline2.svg"); 
-    ofs << "<svg version=\"1.1\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" width=\"" << cam->imgWidth << "\" height=\"" << cam->imgHeight << "\">" << std::endl;
-    ofs << "    <rect width=\"" << cam->imgWidth << "\" height=\"" << cam->imgHeight << "\" stroke=\"black\" stroke-width=\"0\" fill=\"rgb(150,150,150)\"/>\n" ; 
-       
-    vec3 *cpts1 = new vec3[16];
-    float kt[28] = {2, 2.1, 2.3, 2.8, 3.4, 3.5, 3.8,
-                    2, 2.1, 2.3, 2.8, 3.4, 3.5, 3.8,
-                    2, 2.1, 2.3, 2.8, 3.4, 3.5, 3.8,
-                    2, 2.1, 2.3, 2.8, 3.4, 3.5, 3.8};
-                    
-    float weights[16] = {0.2, 0.2, 0.2, 0.2,
-                         2, 0.55, 0.55, 2,
-                         2, 0.55, 0.55, 2,
-                         0.2, 0.2, 0.2, 0.2};
+    NURBS n;
+    cout << "Digite o nome do arquivo a ser lido.\nO(s) arquivo(s) testado(s) foram example1.txt e example2.txt\n";
+    string file;
+    cin >> file;
+    cout << endl;
+    if(readFile(n, file)){
+        cout << "\nPode-se aplicar os comandos disponiveis na NURBS.\n" <<
+                 "Os comandos disponiveis sao: renderScene a b c, onde a,b e c sao um inteiro (0 ou 1)\n" << 
+                 "para indicar se sera renderizado, respectivamente os pontos de controle, a curva e a bounding box\n" <<
+                 "rotX, rotY e rotZ seguido de um float para rotacionar\no NURBS no sentido anti-horario, em graus, com o valor do float\n" <<
+                 "evalSurface s t   para printar a superficie avaliada(x,y,z) dado o espaco parametrico (s,t)\n";
 
-    cpts1[0] = vec3(2, 11, -7);
-    cpts1[1] = vec3(5, 11, -7);
-    cpts1[2] = vec3(8, 11, -7);
-    cpts1[3] = vec3(11, 11, -7);
-
-    cpts1[4] = vec3(2, 11, -10);
-    cpts1[5] = vec3(5, 15, -10);
-    cpts1[6] = vec3(8, 15, -10);
-    cpts1[7] = vec3(11, 11, -10);
-
-    cpts1[8] = vec3(2, 11, -13);
-    cpts1[9] = vec3(5, 15, -13);
-    cpts1[10] = vec3(8, 15, -13);
-    cpts1[11] = vec3(11, 11, -13);
-
-    cpts1[12] = vec3(2, 11, -16);
-    cpts1[13] = vec3(5, 11, -16);
-    cpts1[14] = vec3(8, 11, -16);
-    cpts1[15] = vec3(11, 11, -16);
-
-    NURBS n(3, 3, cpts1, weights, kt);
-    n.cam = cam;
-    //n.rot_x(50);
-    //n.rot_z(30);
-    //n.rot_y(-30);
-    n.render_curve(ofs, 20);
-    n.render_control_points(ofs);
-    n.render_bounding_box(ofs);
-    ofs << "</svg>";
-
+        string str;
+        cin >> str;
+        std::stringstream stream(str);
+        do{
+            string next;
+            stream >> next;
+            if(next == "renderScene" ){
+                bool a, b, c;
+                cin >> a >> b >> c;
+                n.rot_z(30);
+                renderScene(n, a, b, c);
+                std::cout << "Scena renderizada. O arquivo pode ser visto com as modificacoes feitas.\n";
+            }
+            else if(next == "rotX"){
+                float x;
+                stream >> x;
+                n.rot_x(x);
+            }
+            else if(next == "rotY"){
+                float x;
+                stream >> x;
+                n.rot_y(x);
+            }
+            else if(next == "rotZ"){
+                cout << "next is: " << next << endl;
+                //float rz;
+                //stream >> rz;
+                //cout << "X: " << rz << endl;
+                n.rot_z(30);
+            }
+            cin >> str;
+        }while(str != "quit");
+    }
     return 0;
 }
 
