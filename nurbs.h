@@ -6,9 +6,18 @@
 #include <fstream>
 #include <vector>
 #include <limits>
+#include <math.h>
 
 #define MIN 0
 #define MAX 1
+#define PI 3.14159265
+
+static const float FMAX = std::numeric_limits<float>::max();
+
+struct surface{
+    vec3 point;
+    vec3 normal;
+};
 
 class NURBS
 {
@@ -25,7 +34,6 @@ public:
           vec3 *cps = 0, float *w = 0, float *kts = 0):
           n(nn), order(ord), m(nn + ord + 1), controlPoints(cps), weights(w), knots(kts)
     {
-        float FMAX = std::numeric_limits<float>::max();
         min_max[MIN] = vec3(FMAX, FMAX, FMAX);
         min_max[MAX] = vec3(-9999999, -9999999, -9999999);
 
@@ -43,6 +51,7 @@ public:
             for(int i = 0; i < n+1; i++)
                 weights[i] = 1;
         }
+        
         for(int i = 0; i <= n; i++)
             for(int j = 0; j <= n; j++)
                 eval_min_max(controlPoints[(i*(n+1))+j]);
@@ -68,7 +77,7 @@ public:
         if(p.z() > min_max[MAX].z())
             min_max[MAX][2] = p.z();
 
-        //std::cout << "min-> " << min_max[min] << " :::  max->" << min_max[max] << std::endl;
+        //std::cout << "min-> " << min_max[MIN] << " :::  max->" << min_max[MAX] << std::endl;
     }
 
     vec3 get_box_center(){
@@ -113,7 +122,66 @@ public:
         }
     }
 
-    vec3 deBoor(int n, int k, float s, float t){
+    float d_S(int i, int k, float t){
+        int index = i-1;
+        if(k == 1){
+            if( t >= knots[index] && t < knots[index + 1])
+                return 1.0;
+            else
+                return 0.0;
+        }
+        else{
+            float numeratorA = (k);
+            float denominatorA = (knots[index+k-1]-knots[index]);
+            float numeratorB = (k);
+            float denominatorB = (knots[index+k]-knots[index+1]);
+
+            float rA = 0;
+            float rB = 0;
+
+            if( denominatorA != 0 ){
+                rA = (numeratorA/denominatorA) * d_S(i, k-1, t) ;
+            }
+            
+            if( denominatorB != 0){
+                rB = (numeratorB/denominatorB) * d_S(i+1, k-1, t);
+            }
+
+            return rA - rB;
+        }
+    }
+
+    vec3 get_tg_s(int k, float s, float t){
+        vec3 result(0.0, 0.0, 0.0);
+        for(int i = 1; i <= n+1; i++)
+        {
+            for(int j = 1; j <= n+1; j++)
+            {
+                float w1 = S(j, k, t);
+                float w2 = d_S(i, k, s);
+                vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ];
+                result += numerator;
+            }
+        }
+        return result;
+    }
+
+    vec3 get_tg_t(int k, float s, float t){
+        vec3 result(0.0, 0.0, 0.0);
+        for(int i = 1; i <= n+1; i++)
+        {
+            for(int j = 1; j <= n+1; j++)
+            {
+                float w1 = d_S(j, k, t);
+                float w2 = S(i, k, s);
+                vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ];
+                result += numerator;
+            }
+        }
+        return result;
+    }
+
+    vec3 eval_surface(int k, float s, float t){
         vec3 result(0.0, 0.0, 0.0);
         float denom = 0;
 
@@ -162,7 +230,6 @@ public:
     }
 
     void render_curve(std::ofstream &ofs, int numSegments){
-        std::vector<vec2f> samples;
         for(int i = 0; i < numSegments - 1; i++)
         {
             float t = (i/(float)numSegments)*((n+1) - (order-1)) + (order-1) + 0.03;
@@ -173,10 +240,10 @@ public:
                 float s1 = (j/(float)numSegments)*((n+1) - (order-1)) + (order-1) + 0.03;
                 float s2 = ((j+1)/(float)numSegments)*((n+1) - (order-1)) + (order-1) + 0.03;
 
-                if( (s1 < knots[m-1] && s2 < knots[m-1] && t < knots[m-1]) )
+                if( (s1 <= knots[m-1] && s2 <= knots[m-1] && t <= knots[m-1]) )
                 {
-                    vec3 pt1 = deBoor(n, order, t, s1);
-                    vec3 pt2 = deBoor(n, order, t, s2);
+                    vec3 pt1 = eval_surface(order, t, s1);
+                    vec3 pt2 = eval_surface(order, t, s2);
                     vec2f pr1;
                     vec2f pr2;
                     cam->compute_pixel_coordinates(pt1, pr1);
@@ -184,10 +251,10 @@ public:
                     //ofs << "    <circle cx=\"" << pr1.x() << "\" cy=\"" << pr1.y() << "\" r=\"0.8\" stroke=\"black\" stroke-width=\"0.3\" fill=\"red\" />" << std::endl;
                     ofs << "    <line x1=\"" << pr1.x() << "\" y1=\"" << pr1.y() << "\" x2=\"" << pr2.x() << "\" y2=\"" << pr2.y() << "\" style=\"stroke:rgb(0,25,115);stroke-width:0.8\" />\n"; 
 
-                    if(t1 < knots[m-1])
+                    if(t1 <= knots[m-1])
                     {
-                        vec3 pn1 = deBoor(n, order, t1, s1);
-                        vec3 pn2 = deBoor(n, order, t1, s2);
+                        vec3 pn1 = eval_surface(order, t1, s1);
+                        vec3 pn2 = eval_surface(order, t1, s2);
                         vec2f prn1;
                         vec2f prn2;
                         cam->compute_pixel_coordinates(pn1, prn1);
@@ -202,6 +269,12 @@ public:
 
     void render_bounding_box(std::ofstream &ofs){
         //compute x
+        /*min_max[MIN] = vec3(FMAX, FMAX, FMAX);
+        min_max[MAX] = vec3(-9999999, -9999999, -9999999);
+        for(int i = 0; i < (n+1)*(n+1); i++){
+            eval_min_max(controlPoints[i]);
+        }*/
+
         vec2f pZmin1;
         vec2f pZmin2;
         cam->compute_pixel_coordinates(vec3(min_max[MIN].x(), min_max[MIN].y(), min_max[MIN].z()), pZmin1);
@@ -247,6 +320,75 @@ public:
         ofs << "    <line x1=\"" << pXZmax1.x() << "\" y1=\"" << pXZmax1.y() << "\" x2=\"" << pYmax1.x() << "\" y2=\"" << pYmax1.y() << "\" style=\"stroke:rgb(0,255,0);stroke-width:1.2\" />\n"; 
         ofs << "    <line x1=\"" << pXZmax2.x() << "\" y1=\"" << pXZmax2.y() << "\" x2=\"" << pYmax2.x() << "\" y2=\"" << pYmax2.y() << "\" style=\"stroke:rgb(0,255,0);stroke-width:1.2\" />\n"; 
         
+    }
+
+    void rot_x(float deg){
+
+        vec3 point = get_box_center();
+        matrix44 tr(1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    -point.x(),-point.y(),-point.z(),1);
+        matrix44 itr = tr.inverse();
+        float sen = sin(deg*PI/180.0);
+        float co = cos(deg*PI/180);
+        matrix44 rot( 1,   0,   0,   0, 
+                      0,  co,-sen,   0,
+                      0, sen,  co,   0, 
+                      0,   0,   0,   1);
+        matrix44 result = (tr*rot)*itr;
+
+        for(int i = 0; i < ((n+1)*(n+1)); ++i)
+            result.multVecMatrix(controlPoints[i], controlPoints[i]);
+
+        result.multVecMatrix(min_max[MIN], min_max[MIN]);
+        result.multVecMatrix(min_max[MAX], min_max[MAX]);
+
+    }
+
+    void rot_y(float deg){
+
+        vec3 point = get_box_center();
+        matrix44 tr(1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    -point.x(),-point.y(),-point.z(),1);
+        matrix44 itr = tr.inverse();
+        float sen = sin(deg*PI/180.0);
+        float co = cos(deg*PI/180);
+        matrix44 rot( co,   0, sen, 0, 
+                        0,   1,   0, 0,
+                    -sen,   0,  co, 0, 
+                        0,   0,   0, 1);
+        matrix44 result = (tr*rot)*itr;
+
+        for(int i = 0; i < ((n+1)*(n+1)); ++i){
+            result.multVecMatrix(controlPoints[i], controlPoints[i]);
+        }
+
+        result.multVecMatrix(min_max[MIN], min_max[MIN]);
+        result.multVecMatrix(min_max[MAX], min_max[MAX]);
+    }
+
+    void rot_z(float deg){
+
+        vec3 point = get_box_center();
+        matrix44 tr(1,0,0,0,
+                    0,1,0,0,
+                    0,0,1,0,
+                    -point.x(),-point.y(),-point.z(),1);
+        matrix44 itr = tr.inverse();
+        float sen = sin(deg*PI/180.0);
+        float co = cos(deg*PI/180);
+        matrix44 rot( co, -sen,   0,   0, 
+                         sen,   co,   0,   0,
+                           0,    0,   1,   0, 
+                           0,    0,   0,   1);
+        matrix44 result = (tr*rot)*itr;
+
+        for(int i = 0; i < ((n+1)*(n+1)); ++i){
+            result.multVecMatrix(controlPoints[i], controlPoints[i]);
+        }
     }
 };
 
