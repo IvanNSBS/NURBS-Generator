@@ -25,7 +25,7 @@ public:
            fov(f), near(n), imgWidth(iwidth), imgHeight(iheight)
            {
                 float aspectratio = iwidth/iheight;
-                float angle = std::tan((f*0.5)*3.14/180);
+                float angle = std::tan((f*0.5)*M_PI/180) * near;
                 top = angle; 
                 right = angle * aspectratio;    
                 bottom = -top; 
@@ -63,8 +63,8 @@ public:
         vec3 pCamera; 
         worldToCamera.multVecMatrix(pWorld, pCamera); 
         vec2f pScreen; 
-        pScreen[0] = pCamera.x() / -pCamera.z() * near; 
-        pScreen[1] = pCamera.y() / -pCamera.z() * near; 
+        pScreen[0] = pCamera.x() / (-pCamera.z() * near); 
+        pScreen[1] = pCamera.y() / (-pCamera.z() * near); 
     
         vec2f pNDC; 
         pNDC[0] = (pScreen.x() + right) / (2 * right); 

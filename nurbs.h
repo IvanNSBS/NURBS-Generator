@@ -77,7 +77,6 @@ public:
         if(p.z() > min_max[MAX].z())
             min_max[MAX][2] = p.z();
 
-        //std::cout << "min-> " << min_max[MIN] << " :::  max->" << min_max[MAX] << std::endl;
     }
 
     vec3 get_box_center(){
@@ -126,60 +125,38 @@ public:
         }
     }
 
-    float d_S(int i, int k, float t){
+    float d_S(int i, int k, float t, bool &valid){
         int index = i-1;
-        if(k == 1){
-            if( t >= knots[index] && t < knots[index + 1])
-                return 1.0;
-            else
-                return 0.0;
+        float numeratorA = (k);
+        float denominatorA = (knots[index+k-1]-knots[index]);
+        float numeratorB = (k);
+        float denominatorB = (knots[index+k]-knots[index+1]);
+
+        float rA = 0;
+        float rB = 0;
+
+        if( denominatorA != 0 ){
+            rA = (numeratorA/denominatorA) * S(i, k-1, t, valid) ;
         }
-        else{
-            float numeratorA = (k);
-            float denominatorA = (knots[index+k-1]-knots[index]);
-            float numeratorB = (k);
-            float denominatorB = (knots[index+k]-knots[index+1]);
-
-            float rA = 0;
-            float rB = 0;
-
-            if( denominatorA != 0 ){
-                rA = (numeratorA/denominatorA) * d_S(i, k-1, t) ;
-            }
             
-            if( denominatorB != 0){
-                rB = (numeratorB/denominatorB) * d_S(i+1, k-1, t);
-            }
-
-            return rA - rB;
+        if( denominatorB != 0){
+            rB = (numeratorB/denominatorB) * S(i+1, k-1, t, valid);
         }
+
+        return rA - rB;
     }
 
-    vec3 get_tg_s(int k, float s, float t){
+    vec3 get_tg(int k, float s, float t, bool &valid){
         vec3 result(0.0, 0.0, 0.0);
-        bool v = true;
+        bool v1 = false;
+        bool v2 = false;
         for(int i = 1; i <= n+1; i++)
         {
             for(int j = 1; j <= n+1; j++)
             {
-                float w1 = S(j, k, t, v);
-                float w2 = d_S(i, k, s);
-                vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ];
-                result += numerator;
-            }
-        }
-        return result;
-    }
-
-    vec3 get_tg_t(int k, float s, float t){
-        vec3 result(0.0, 0.0, 0.0);
-        bool v = true;
-        for(int i = 1; i <= n+1; i++)
-        {
-            for(int j = 1; j <= n+1; j++)
-            {
-                float w1 = d_S(j, k, t);
-                float w2 = S(i, k, s, v);
+                float w1 = d_S(j, k, t, v1);
+                float w2 = S(i, k, s, v2);
+                valid = v1 && v2;
                 vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ];
                 result += numerator;
             }
@@ -257,7 +234,6 @@ public:
                     vec2f pr2;
                     cam->compute_pixel_coordinates(pt1, pr1);
                     cam->compute_pixel_coordinates(pt2, pr2);
-                    //ofs << "    <circle cx=\"" << pr1.x() << "\" cy=\"" << pr1.y() << "\" r=\"0.8\" stroke=\"black\" stroke-width=\"0.3\" fill=\"red\" />" << std::endl;
                     ofs << "    <line x1=\"" << pr1.x() << "\" y1=\"" << pr1.y() << "\" x2=\"" << pr2.x() << "\" y2=\"" << pr2.y() << "\" style=\"stroke:rgb(0,25,115);stroke-width:0.8\" />\n"; 
 
                     bool vv1 = false;

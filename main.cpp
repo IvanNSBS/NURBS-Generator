@@ -78,7 +78,7 @@ bool readFile(NURBS &nurbs, const std::string &filename){
                 }
                 else if(next == "order"){
                     stream >> order;
-                    knots = new float[(cpsize+1+order)*(cpsize+1)];
+                    knots = new float[(cpsize+1+order)];
                     weights = new float[(cpsize+1)*(cpsize+1)];
                     cpPoints = new vec3[(cpsize+1)*(cpsize+1)];
                 }
@@ -89,10 +89,9 @@ bool readFile(NURBS &nurbs, const std::string &filename){
                     auxWeight++;
                 }
                 if(next == "no"){
-                    for(int i = (cpsize+1+order)*(auxKnot-1); i < (cpsize+1+order)*(auxKnot); i++){
+                    for(int i = 0; i < cpsize+1+order; i++){
                         stream >> knots[i];
                     }
-                    auxKnot++;
                 }
                 if(next == "cp"){
                     float x, y, z;
@@ -112,7 +111,7 @@ bool readFile(NURBS &nurbs, const std::string &filename){
     return true;
 }
 
-void renderScene(string fileName, NURBS &n, bool drawCPTs, bool drawCurve, bool drawBBox){
+void renderScene(string fileName, NURBS &n, bool drawCPTs, bool drawCurve, bool drawBBox, int segments){
 
     std::ofstream ofs; 
     ofs.open("./" + fileName + ".svg"); 
@@ -120,7 +119,7 @@ void renderScene(string fileName, NURBS &n, bool drawCPTs, bool drawCurve, bool 
     
     ofs << "    <rect width=\"" << n.cam->imgWidth << "\" height=\"" << n.cam->imgHeight << "\" stroke=\"black\" stroke-width=\"0\" fill=\"rgb(150,150,150)\"/>\n" ; 
     if(drawCurve)
-        n.render_curve(ofs, 20);
+        n.render_curve(ofs, segments);
     
     if(drawCPTs)
         n.render_control_points(ofs);
@@ -138,17 +137,18 @@ int main()
     string file;
     cin >> file;
     cout << endl;
-    cout << "Digite o nome do arquivo a ser criado(ele sera criado apos a cena ser renderizada).\n";
-    string fileName;
-    cin >> fileName;
     if(readFile(n, file)){
+        cout << "Digite o nome do arquivo a ser criado(ele sera criado apos a cena ser renderizada).\n";
+        string fileName;
+        cin >> fileName;
+        cout << endl;
         cout << "\nPode-se aplicar os comandos disponiveis na NURBS.\n" <<
                  "Os comandos disponiveis sao: renderScene a b c, onde a,b e c sao um inteiro 0 ou 1,\nque indica false ou true, respectivamente\n" << 
-                 "para indicar se sera renderizado, respectivamente os pontos de controle, a curva e a bounding box\n" <<
+                 "para indicar se sera renderizado, respectivamente os pontos de controle, a curva e a bounding box\n, seguido do nivel de detalhamento das malhas geradas.\n" <<
                  "rotX, rotY e rotZ seguido de um float para rotacionar\no NURBS no sentido anti-horario, em graus, com o valor do float\n" <<
                  "evalSurface s t   para printar a superficie avaliada(x,y,z) dado o espaco parametrico (s,t)\n" << 
-                 "tangente no param....\n" <<
-                 "para encerrar, aplica-se o comando quit.\n";
+                 "get_tg s t para printar a tangente no espaco paramametrico (s,t)\n" <<
+                 "para encerrar, aplica-se o comando quit.\n\n";
 
         string str;
         cin >> str;
@@ -158,26 +158,30 @@ int main()
             stream >> next;
             if(next == "renderScene" ){
                 bool a, b, c;
+                int segments;
                 cin >> a >> b >> c;
-                //n.rot_z(30);
-                renderScene(fileName, n, a, b, c);
+                cin >> segments;
+                renderScene(fileName, n, a, b, c, segments);
                 std::cout << "Scena renderizada. O arquivo pode ser visto com as modificacoes feitas.\n";
             }
             else if(next == "rotX"){
                 float x;
                 cin >> x;
                 n.rot_x(x);
+                cout << "Rotacao realizada\n";
             }
             else if(next == "rotY"){
                 float x;
                 cin >> x;
                 n.rot_y(x);
+                cout << "Rotacao realizada\n";
             }
             else if(next == "rotZ"){
                 float rz;
                 cin >> rz;
                 cout << "X: " << rz << endl;
                 n.rot_z(rz);
+                cout << "Rotacao realizada\n";
             }
             else if(next == "evalSurface"){
                 float s, t;
@@ -185,35 +189,23 @@ int main()
                 bool valid = false;
                 vec3 point = n.eval_surface(n.order, s, t, valid);
                 if(valid)
-                    cout << "Ponto = " << point << endl;
+                    cout << "Ponto Avaliado = " << point << endl;
                 else
                     cout << "(s,t) estao num intervalo invalido.\n";
             }
-
+            else if(next == "get_tg"){
+                float s, t;
+                cin >> s >> t;
+                bool valid = false;
+                cout << "evaluating\n";
+                vec3 point = n.get_tg(n.order, s, t, valid);
+                if(valid)
+                    cout << "Ponto Avaliado = " << point << endl;
+                else
+                    cout << "(s,t) estao num intervalo invalido.\n";
+            }
             cin >> str;
         }while(str != "quit");
     }
     return 0;
 }
-
-    /*cpts[0] = vec3(2, 13, -10);
-    cpts[1] = vec3(2, 16, -10);
-    cpts[2] = vec3(8, 16, -10);
-    cpts[3] = vec3(8, 12, -10);
-    cpts[4] = vec3(12, 15, -10);
-    cpts[5] = vec3(14, 12, -10);
-
-    cpts[0] = vec3(2, 13, -10);
-    cpts[1] = vec3(2, 20, -10);
-    cpts[2] = vec3(8, 20, -10);
-    cpts[3] = vec3(8, 11, -10);
-    cpts[4] = vec3(4, 11, -10);
-    cpts[5] = vec3(4, 15, -10);*/
-
-    /*cpts[0] = vec3(2, 27, -10);
-    cpts[1] = vec3(6, 4, -10);
-    cpts[2] = vec3(12, 13, -10);
-    cpts[3] = vec3(18.5, 18, -10);
-    cpts[4] = vec3(26, 9, -10);
-    cpts[5] = vec3(34.5, 14, -10);
-    cpts[6] = vec3(34, 21, -10);*/
