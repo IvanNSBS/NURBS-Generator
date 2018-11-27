@@ -93,13 +93,17 @@ public:
                 p.z() <= min_max[MAX].z() && p.z() >= min_max[MIN].z());
     }
 
-    float S(int i, int k, float t){
+    float S(int i, int k, float t, bool &valid){
         int index = i-1;
         if(k == 1){
-            if( t >= knots[index] && t < knots[index + 1])
+            if( t >= knots[index] && t < knots[index + 1]){
+                valid |= true;
                 return 1.0;
-            else
+            }
+            else{
+                valid |= false;
                 return 0.0;
+            }
         }
         else{
             float numeratorA = (t - knots[index]);
@@ -111,11 +115,11 @@ public:
             float rB = 0;
 
             if( denominatorA != 0 ){
-                rA = (numeratorA/denominatorA) * S(i, k-1, t) ;
+                rA = (numeratorA/denominatorA) * S(i, k-1, t, valid) ;
             }
             
             if( denominatorB != 0){
-                rB = (numeratorB/denominatorB) * S(i+1, k-1, t);
+                rB = (numeratorB/denominatorB) * S(i+1, k-1, t, valid);
             }
 
             return rA + rB;
@@ -153,11 +157,12 @@ public:
 
     vec3 get_tg_s(int k, float s, float t){
         vec3 result(0.0, 0.0, 0.0);
+        bool v = true;
         for(int i = 1; i <= n+1; i++)
         {
             for(int j = 1; j <= n+1; j++)
             {
-                float w1 = S(j, k, t);
+                float w1 = S(j, k, t, v);
                 float w2 = d_S(i, k, s);
                 vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ];
                 result += numerator;
@@ -168,12 +173,13 @@ public:
 
     vec3 get_tg_t(int k, float s, float t){
         vec3 result(0.0, 0.0, 0.0);
+        bool v = true;
         for(int i = 1; i <= n+1; i++)
         {
             for(int j = 1; j <= n+1; j++)
             {
                 float w1 = d_S(j, k, t);
-                float w2 = S(i, k, s);
+                float w2 = S(i, k, s, v);
                 vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ];
                 result += numerator;
             }
@@ -181,16 +187,18 @@ public:
         return result;
     }
 
-    vec3 eval_surface(int k, float s, float t){
+    vec3 eval_surface(int k, float s, float t, bool &valid){
         vec3 result(0.0, 0.0, 0.0);
         float denom = 0;
-
+        bool v1 = false;
+        bool v2 = false;
         for(int i = 1; i <= n+1; i++)
         {
             for(int j = 1; j <= n+1; j++)
             {
-                float w1 = S(j, k, t);
-                float w2 = S(i, k, s);
+                float w1 = S(j, k, t, v1);
+                float w2 = S(i, k, s, v2);
+                valid = v1 && v2;
                 vec3 numerator = w2 * w1 * controlPoints[j-1 + ((n+1)*(i-1)) ] * weights[j-1 + ((n+1)*(i-1))];
                 float denominator = w2 * w1 * weights[j-1 + ((n+1)*(i-1))];
                 denom += denominator;
@@ -239,11 +247,12 @@ public:
             {
                 float s1 = (j/(float)numSegments)*((n+1) - (order-1)) + (order-1) + 0.03;
                 float s2 = ((j+1)/(float)numSegments)*((n+1) - (order-1)) + (order-1) + 0.03;
-
-                if( (s1 <= knots[m-1] && s2 <= knots[m-1] && t <= knots[m-1]) )
+                bool v1 = false;
+                bool v2 = false;
+                vec3 pt1 = eval_surface(order, t, s1, v1);
+                vec3 pt2 = eval_surface(order, t, s2, v2);
+                if( v1 && v2 )
                 {
-                    vec3 pt1 = eval_surface(order, t, s1);
-                    vec3 pt2 = eval_surface(order, t, s2);
                     vec2f pr1;
                     vec2f pr2;
                     cam->compute_pixel_coordinates(pt1, pr1);
@@ -251,10 +260,12 @@ public:
                     //ofs << "    <circle cx=\"" << pr1.x() << "\" cy=\"" << pr1.y() << "\" r=\"0.8\" stroke=\"black\" stroke-width=\"0.3\" fill=\"red\" />" << std::endl;
                     ofs << "    <line x1=\"" << pr1.x() << "\" y1=\"" << pr1.y() << "\" x2=\"" << pr2.x() << "\" y2=\"" << pr2.y() << "\" style=\"stroke:rgb(0,25,115);stroke-width:0.8\" />\n"; 
 
-                    if(t1 <= knots[m-1])
+                    bool vv1 = false;
+                    bool vv2 = false;
+                    vec3 pn1 = eval_surface(order, t1, s1, vv1);
+                    vec3 pn2 = eval_surface(order, t1, s2, vv2);
+                    if( vv1 && vv2 )
                     {
-                        vec3 pn1 = eval_surface(order, t1, s1);
-                        vec3 pn2 = eval_surface(order, t1, s2);
                         vec2f prn1;
                         vec2f prn2;
                         cam->compute_pixel_coordinates(pn1, prn1);
@@ -268,12 +279,6 @@ public:
     }
 
     void render_bounding_box(std::ofstream &ofs){
-        //compute x
-        /*min_max[MIN] = vec3(FMAX, FMAX, FMAX);
-        min_max[MAX] = vec3(-9999999, -9999999, -9999999);
-        for(int i = 0; i < (n+1)*(n+1); i++){
-            eval_min_max(controlPoints[i]);
-        }*/
 
         vec2f pZmin1;
         vec2f pZmin2;

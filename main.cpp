@@ -140,41 +140,48 @@ int main()
     cout << endl;
     if(readFile(n, file)){
         cout << "\nPode-se aplicar os comandos disponiveis na NURBS.\n" <<
-                 "Os comandos disponiveis sao: renderScene a b c, onde a,b e c sao um inteiro (0 ou 1)\n" << 
+                 "Os comandos disponiveis sao: renderScene a b c, onde a,b e c sao um inteiro 0 ou 1,\nque indica false ou true, respectivamente\n" << 
                  "para indicar se sera renderizado, respectivamente os pontos de controle, a curva e a bounding box\n" <<
                  "rotX, rotY e rotZ seguido de um float para rotacionar\no NURBS no sentido anti-horario, em graus, com o valor do float\n" <<
-                 "evalSurface s t   para printar a superficie avaliada(x,y,z) dado o espaco parametrico (s,t)\n";
+                 "evalSurface s t   para printar a superficie avaliada(x,y,z) dado o espaco parametrico (s,t)\n" << 
+                 "tangente no param....\n" <<
+                 "para encerrar, aplica-se o comando quit.\n";
 
         string str;
         cin >> str;
-        std::stringstream stream(str);
         do{
+            std::stringstream stream(str);
             string next;
             stream >> next;
             if(next == "renderScene" ){
                 bool a, b, c;
                 cin >> a >> b >> c;
-                n.rot_z(30);
+                //n.rot_z(30);
                 renderScene(n, a, b, c);
                 std::cout << "Scena renderizada. O arquivo pode ser visto com as modificacoes feitas.\n";
             }
             else if(next == "rotX"){
                 float x;
-                stream >> x;
+                cin >> x;
                 n.rot_x(x);
             }
             else if(next == "rotY"){
                 float x;
-                stream >> x;
+                cin >> x;
                 n.rot_y(x);
             }
             else if(next == "rotZ"){
-                cout << "next is: " << next << endl;
-                //float rz;
-                //stream >> rz;
-                //cout << "X: " << rz << endl;
-                n.rot_z(30);
+                float rz;
+                cin >> rz;
+                cout << "X: " << rz << endl;
+                n.rot_z(rz);
             }
+            else if(next == "evalSurface"){
+                float s, t;
+                cin >> s >> t;
+                //n.eval_surface(n.order, s, t);
+            }
+
             cin >> str;
         }while(str != "quit");
     }
