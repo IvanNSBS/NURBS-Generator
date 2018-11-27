@@ -179,7 +179,6 @@ int main()
             else if(next == "rotZ"){
                 float rz;
                 cin >> rz;
-                cout << "X: " << rz << endl;
                 n.rot_z(rz);
                 cout << "Rotacao realizada\n";
             }
