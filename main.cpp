@@ -144,8 +144,9 @@ int main()
         cout << endl;
         cout << "\nPode-se aplicar os comandos disponiveis na NURBS.\n" <<
                  "Os comandos disponiveis sao: renderScene a b c, onde a,b e c sao um inteiro 0 ou 1,\nque indica false ou true, respectivamente\n" << 
-                 "para indicar se sera renderizado, respectivamente os pontos de controle, a curva e a bounding box\n, seguido do nivel de detalhamento das malhas geradas.\n" <<
-                 "rotX, rotY e rotZ seguido de um float para rotacionar\no NURBS no sentido anti-horario, em graus, com o valor do float\n" <<
+                 "para indicar se sera renderizado os pontos de controle, a curva e a bounding box, respectivamente\n, seguido do nivel de divisao das malha geradas.\n" <<
+                 "O arquivo sera entao criado ou atualizado e podera ser visualizado\n" << 
+                 "rotX, rotY ou rotZ seguido de um float para rotacionar\no NURBS no sentido anti-horario, em graus, com o valor do float\n" <<
                  "evalSurface s t   para printar a superficie avaliada(x,y,z) dado o espaco parametrico (s,t)\n" << 
                  "get_tg s t para printar a tangente no espaco paramametrico (s,t)\n" <<
                  "para encerrar, aplica-se o comando quit.\n\n";
