@@ -112,10 +112,10 @@ bool readFile(NURBS &nurbs, const std::string &filename){
     return true;
 }
 
-void renderScene(NURBS &n, bool drawCPTs, bool drawCurve, bool drawBBox){
+void renderScene(string fileName, NURBS &n, bool drawCPTs, bool drawCurve, bool drawBBox){
 
     std::ofstream ofs; 
-    ofs.open("./bspline3.svg"); 
+    ofs.open("./" + fileName + ".svg"); 
     ofs << "<svg version=\"1.1\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" width=\"" << n.cam->imgWidth << "\" height=\"" << n.cam->imgHeight << "\">" << std::endl;
     
     ofs << "    <rect width=\"" << n.cam->imgWidth << "\" height=\"" << n.cam->imgHeight << "\" stroke=\"black\" stroke-width=\"0\" fill=\"rgb(150,150,150)\"/>\n" ; 
@@ -138,6 +138,9 @@ int main()
     string file;
     cin >> file;
     cout << endl;
+    cout << "Digite o nome do arquivo a ser criado(ele sera criado apos a cena ser renderizada).\n";
+    string fileName;
+    cin >> fileName;
     if(readFile(n, file)){
         cout << "\nPode-se aplicar os comandos disponiveis na NURBS.\n" <<
                  "Os comandos disponiveis sao: renderScene a b c, onde a,b e c sao um inteiro 0 ou 1,\nque indica false ou true, respectivamente\n" << 
@@ -157,7 +160,7 @@ int main()
                 bool a, b, c;
                 cin >> a >> b >> c;
                 //n.rot_z(30);
-                renderScene(n, a, b, c);
+                renderScene(fileName, n, a, b, c);
                 std::cout << "Scena renderizada. O arquivo pode ser visto com as modificacoes feitas.\n";
             }
             else if(next == "rotX"){
@@ -179,7 +182,12 @@ int main()
             else if(next == "evalSurface"){
                 float s, t;
                 cin >> s >> t;
-                //n.eval_surface(n.order, s, t);
+                bool valid = false;
+                vec3 point = n.eval_surface(n.order, s, t, valid);
+                if(valid)
+                    cout << "Ponto = " << point << endl;
+                else
+                    cout << "(s,t) estao num intervalo invalido.\n";
             }
 
             cin >> str;
